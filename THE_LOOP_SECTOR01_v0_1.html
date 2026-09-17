@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#090909">
+
+<title>THE LOOP — SECTOR 01</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#080808;
+    color:#eee;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+#game{
+    position:relative;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#101010;
+}
+
+/* =========================
+   WORLD
+========================= */
+
+#world{
+    position:absolute;
+    left:0;
+    top:0;
+    width:1600px;
+    height:1000px;
+
+    background:
+        linear-gradient(
+            rgba(255,255,255,.025) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(255,255,255,.025) 1px,
+            transparent 1px
+        ),
+        #34312b;
+
+    background-size:50px 50px;
+
+    transform-origin:0 0;
+}
+
+/* 地面 */
+
+.ground{
+    position:absolute;
+    inset:0;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(255,255,255,.08),
+            transparent 60%
+        );
+}
+
+/* 道路 */
+
+.road{
+    position:absolute;
+    background:#242321;
+}
+
+.road.vertical{
+    left:680px;
+    top:0;
+    width:260px;
+    height:100%;
+}
+
+.road.horizontal{
+    left:0;
+    top:430px;
+    width:100%;
+    height:220px;
+}
+
+/* 镇上建筑 */
+
+.building{
+    position:absolute;
+
+    background:#191817;
+    border:3px solid #0d0d0d;
+
+    box-shadow:
+        0 8px 20px rgba(0,0,0,.35);
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:#aaa;
+    font-size:14px;
+    letter-spacing:1px;
+}
+
+.building::after{
+    content:"";
+    position:absolute;
+    bottom:-10px;
+    left:10%;
+    width:80%;
+    height:6px;
+    background:#0c0c0c;
+}
+
+.tavern{
+    left:360px;
+    top:280px;
+    width:260px;
+    height:150px;
+}
+
+.hotel{
+    left:1010px;
+    top:260px;
+    width:260px;
+    height:170px;
+}
+
+.blacksmith{
+    left:300px;
+    top:690px;
+    width:250px;
+    height:150px;
+}
+
+.ranch{
+    left:1040px;
+    top:690px;
+    width:360px;
+    height:190px;
+}
+
+.mine{
+    left:90px;
+    top:80px;
+    width:230px;
+    height:190px;
+
+    background:#101010;
+}
+
+.mine span{
+    color:#777;
+}
+
+/* 河流 */
+
+.river{
+    position:absolute;
+    left:0;
+    top:900px;
+    width:1600px;
+    height:100px;
+
+    background:#1c2425;
+    border-top:3px solid #111;
+}
+
+/* =========================
+   NPC
+========================= */
+
+.npc{
+    position:absolute;
+    width:42px;
+    height:42px;
+
+    border-radius:50%;
+
+    background:#c8c8c8;
+    border:3px solid #111;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:#111;
+    font-weight:bold;
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,.4);
+
+    z-index:20;
+}
+
+.npc-name{
+    position:absolute;
+    top:-23px;
+    left:50%;
+    transform:translateX(-50%);
+
+    white-space:nowrap;
+
+    font-size:11px;
+    color:#ddd;
+
+    text-shadow:0 2px 4px #000;
+}
+
+/* NPC位置 */
+
+#evan{
+    left:475px;
+    top:460px;
+}
+
+#mira{
+    left:1060px;
+    top:470px;
+}
+
+#cole{
+    left:830px;
+    top:760px;
+}
+
+#child{
+    left:920px;
+    top:390px;
+}
+
+/* =========================
+   PLAYER
+========================= */
+
+#player{
+    position:absolute;
+
+    width:38px;
+    height:38px;
+
+    border-radius:50%;
+
+    background:#eee;
+    border:4px solid #111;
+
+    z-index:50;
+
+    box-shadow:
+        0 0 0 3px rgba(255,255,255,.1);
+}
+
+/* =========================
+   HUD
+========================= */
+
+#hud{
+    position:absolute;
+
+    left:14px;
+    top:14px;
+
+    z-index:100;
+
+    pointer-events:none;
+}
+
+.logo{
+    font-size:18px;
+    font-weight:700;
+    letter-spacing:3px;
+}
+
+.chapter{
+    margin-top:3px;
+    color:#888;
+    font-size:11px;
+    letter-spacing:2px;
+}
+
+#objective{
+    margin-top:12px;
+
+    padding:9px 12px;
+
+    background:rgba(0,0,0,.55);
+    border-left:2px solid #aaa;
+
+    font-size:12px;
+    color:#ccc;
+
+    max-width:280px;
+}
+
+/* =========================
+   DIALOGUE
+========================= */
+
+#dialogue{
+    position:absolute;
+
+    left:50%;
+    bottom:24px;
+
+    transform:translateX(-50%);
+
+    width:min(680px,calc(100% - 28px));
+
+    padding:18px;
+
+    background:rgba(8,8,8,.94);
+
+    border:1px solid #333;
+
+    border-radius:12px;
+
+    z-index:200;
+
+    display:none;
+}
+
+#speaker{
+    font-size:13px;
+    color:#aaa;
+    margin-bottom:7px;
+}
+
+#text{
+    font-size:15px;
+    line-height:1.6;
+}
+
+#continue{
+    margin-top:13px;
+
+    text-align:right;
+
+    color:#aaa;
+    font-size:11px;
+}
+
+/* =========================
+   MOBILE CONTROL
+========================= */
+
+#controls{
+    position:absolute;
+
+    left:18px;
+    bottom:25px;
+
+    width:150px;
+    height:150px;
+
+    z-index:150;
+}
+
+.control{
+    position:absolute;
+
+    width:48px;
+    height:48px;
+
+    border-radius:50%;
+
+    background:rgba(0,0,0,.5);
+    border:1px solid #555;
+
+    color:#ddd;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:20px;
+
+    user-select:none;
+}
+
+.up{
+    left:51px;
+    top:0;
+}
+
+.down{
+    left:51px;
+    bottom:0;
+}
+
+.left{
+    left:0;
+    top:51px;
+}
+
+.right{
+    right:0;
+    top:51px;
+}
+
+/* =========================
+   INTERACTION
+========================= */
+
+#interact{
+    position:absolute;
+
+    right:20px;
+    bottom:35px;
+
+    width:64px;
+    height:64px;
+
+    border-radius:50%;
+
+    background:#eee;
+    color:#111;
+
+    display:none;
+    align-items:center;
+    justify-content:center;
+
+    font-weight:700;
+
+    z-index:180;
+}
+
+#fade{
+    position:absolute;
+    inset:0;
+
+    background:#000;
+
+    opacity:0;
+    pointer-events:none;
+
+    z-index:500;
+
+    transition:opacity .8s;
+}
+
+/* =========================
+   DESKTOP
+========================= */
+
+@media(min-width:800px){
+
+    #controls{
+        opacity:.65;
+    }
+
+    #interact{
+        display:none!important;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <div id="world">
+
+        <div class="ground"></div>
+
+        <div class="road vertical"></div>
+        <div class="road horizontal"></div>
+
+        <div class="building mine">
+            <span>ABANDONED MINE</span>
+        </div>
+
+        <div class="building tavern">
+            TAVERN
+        </div>
+
+        <div class="building hotel">
+            HOTEL
+        </div>
+
+        <div class="building blacksmith">
+            BLACKSMITH
+        </div>
+
+        <div class="building ranch">
+            RANCH
+        </div>
+
+        <div class="river"></div>
+
+        <!-- NPC -->
+
+        <div class="npc" id="evan">
+            E
+            <div class="npc-name">EVAN</div>
+        </div>
+
+        <div class="npc" id="mira">
+            M
+            <div class="npc-name">MIRA</div>
+        </div>
+
+        <div class="npc" id="cole">
+            C
+            <div class="npc-name">COLE</div>
+        </div>
+
+        <div class="npc" id="child">
+            ?
+            <div class="npc-name">CHILD</div>
+        </div>
+
+        <!-- PLAYER -->
+
+        <div id="player"></div>
+
+    </div>
+
+    <!-- HUD -->
+
+    <div id="hud">
+
+        <div class="logo">
+            THE LOOP
+        </div>
+
+        <div class="chapter">
+            SECTOR 01
+        </div>
+
+        <div id="objective">
+            探索小镇
+        </div>
+
+    </div>
+
+    <!-- CONTROLS -->
+
+    <div id="controls">
+
+        <div class="control up"
+             data-key="up">▲</div>
+
+        <div class="control down"
+             data-key="down">▼</div>
+
+        <div class="control left"
+             data-key="left">◀</div>
+
+        <div class="control right"
+             data-key="right">▶</div>
+
+    </div>
+
+    <div id="interact">
+        TALK
+    </div>
+
+    <!-- DIALOGUE -->
+
+    <div id="dialogue">
+
+        <div id="speaker"></div>
+
+        <div id="text"></div>
+
+        <div id="continue">
+            点击继续
+        </div>
+
+    </div>
+
+    <div id="fade"></div>
+
+</div>
+
+<script>
+
+const world =
+    document.getElementById("world");
+
+const player =
+    document.getElementById("player");
+
+const objective =
+    document.getElementById("objective");
+
+const dialogue =
+    document.getElementById("dialogue");
+
+const speaker =
+    document.getElementById("speaker");
+
+const text =
+    document.getElementById("text");
+
+const interact =
+    document.getElementById("interact");
+
+const game =
+    document.getElementById("game");
+
+let playerX = 760;
+let playerY = 520;
+
+let cameraX = 0;
+let cameraY = 0;
+
+const speed = 3.2;
+
+let keys = {
+    up:false,
+    down:false,
+    left:false,
+    right:false
+};
+
+let currentNPC = null;
+
+let state = {
+
+    day:1,
+
+    annaMissing:false,
+
+    talkedEvan:false,
+
+    talkedMira:false,
+
+    talkedCole:false,
+
+    childClue:false,
+
+    mineUnlocked:false
+
+};
+
+/* =========================
+   NPC DATA
+========================= */
+
+const npcs = {
+
+    evan:{
+        el:document.getElementById("evan"),
+
+        name:"EVAN",
+
+        lines:[
+            "早上好。你是新来的？",
+            "这里没什么值得看的。",
+            "不过……最近少了一个人。",
+            "Anna。她两天前不见了。",
+            "如果你要找她，去问问Mira。"
+        ]
+    },
+
+    mira:{
+        el:document.getElementById("mira"),
+
+        name:"MIRA",
+
+        lines:[
+            "Anna？",
+            "她最后一次来找我，是在昨天。",
+            "她说她听到了矿洞里的声音。",
+            "我告诉她不要靠近那里。",
+            "但她没有听。"
+        ]
+    },
+
+    cole:{
+        el:document.getElementById("cole"),
+
+        name:"COLE",
+
+        lines:[
+            "矿洞？",
+            "那里已经废弃很多年了。",
+            "至少……应该是很多年。",
+            "昨天晚上我在那里看见了一盏灯。",
+            "如果我是你，我不会进去。"
+        ]
+    },
+
+    child:{
+        el:document.getElementById("child"),
+
+        name:"CHILD",
+
+        lines:[
+            "你是在找Anna吗？",
+            "她以前总和我玩。",
+            "可是昨天她回来过。",
+            "她说……她已经来过这里一次了。",
+            "我不知道她是什么意思。"
+        ]
+    }
+
+};
+
+/* =========================
+   DIALOGUE
+========================= */
+
+let dialogueLines = [];
+let dialogueIndex = 0;
+
+function startDialogue(npc){
+
+    currentNPC = npc;
+
+    dialogueLines =
+        npcs[npc].lines;
+
+    dialogueIndex = 0;
+
+    dialogue.style.display =
+        "block";
+
+    showLine();
+
+    if(npc === "evan"){
+        state.talkedEvan = true;
+
+        state.annaMissing = true;
+
+        objective.textContent =
+            "Anna失踪了。去找Mira。";
+    }
+
+    if(npc === "mira"){
+        state.talkedMira = true;
+
+        objective.textContent =
+            "Anna最后去过废弃矿洞。";
+    }
+
+    if(npc === "cole"){
+        state.talkedCole = true;
+
+        objective.textContent =
+            "矿洞里似乎有异常。";
+    }
+
+    if(npc === "child"){
+
+        state.childClue = true;
+
+        state.mineUnlocked = true;
+
+        objective.textContent =
+            "去废弃矿洞看看。";
+    }
+}
+
+function showLine(){
+
+    speaker.textContent =
+        npcs[currentNPC].name;
+
+    text.textContent =
+        dialogueLines[dialogueIndex];
+
+}
+
+function nextDialogue(){
+
+    dialogueIndex++;
+
+    if(dialogueIndex >= dialogueLines.length){
+
+        dialogue.style.display =
+            "none";
+
+        currentNPC = null;
+
+        return;
+    }
+
+    showLine();
+}
+
+/* 点击对话框 */
+
+dialogue.addEventListener(
+    "click",
+    nextDialogue
+);
+
+/* =========================
+   KEYBOARD
+========================= */
+
+window.addEventListener(
+    "keydown",
+    e => {
+
+        if(e.key === "ArrowUp" ||
+           e.key.toLowerCase() === "w")
+            keys.up = true;
+
+        if(e.key === "ArrowDown" ||
+           e.key.toLowerCase() === "s")
+            keys.down = true;
+
+        if(e.key === "ArrowLeft" ||
+           e.key.toLowerCase() === "a")
+            keys.left = true;
+
+        if(e.key === "ArrowRight" ||
+           e.key.toLowerCase() === "d")
+            keys.right = true;
+
+        if(e.key === " " &&
+           currentNPC){
+            nextDialogue();
+        }
+    }
+);
+
+window.addEventListener(
+    "keyup",
+    e => {
+
+        if(e.key === "ArrowUp" ||
+           e.key.toLowerCase() === "w")
+            keys.up = false;
+
+        if(e.key === "ArrowDown" ||
+           e.key.toLowerCase() === "s")
+            keys.down = false;
+
+        if(e.key === "ArrowLeft" ||
+           e.key.toLowerCase() === "a")
+            keys.left = false;
+
+        if(e.key === "ArrowRight" ||
+           e.key.toLowerCase() === "d")
+            keys.right = false;
+    }
+);
+
+/* =========================
+   TOUCH CONTROLS
+========================= */
+
+document.querySelectorAll(
+    ".control"
+).forEach(button => {
+
+    const key =
+        button.dataset.key;
+
+    const start = e => {
+
+        e.preventDefault();
+
+        keys[key] = true;
+    };
+
+    const end = e => {
+
+        e.preventDefault();
+
+        keys[key] = false;
+    };
+
+    button.addEventListener(
+        "touchstart",
+        start,
+        {passive:false}
+    );
+
+    button.addEventListener(
+        "touchend",
+        end,
+        {passive:false}
+    );
+
+    button.addEventListener(
+        "touchcancel",
+        end,
+        {passive:false}
+    );
+
+    button.addEventListener(
+        "mousedown",
+        start
+    );
+
+    button.addEventListener(
+        "mouseup",
+        end
+    );
+
+});
+
+/* =========================
+   MOVEMENT
+========================= */
+
+function updatePlayer(){
+
+    if(currentNPC)
+        return;
+
+    let dx = 0;
+    let dy = 0;
+
+    if(keys.up)
+        dy -= speed;
+
+    if(keys.down)
+        dy += speed;
+
+    if(keys.left)
+        dx -= speed;
+
+    if(keys.right)
+        dx += speed;
+
+    if(dx !== 0 && dy !== 0){
+
+        dx *= .707;
+        dy *= .707;
+    }
+
+    playerX += dx;
+    playerY += dy;
+
+    playerX =
+        Math.max(
+            20,
+            Math.min(
+                1540,
+                playerX
+            )
+        );
+
+    playerY =
+        Math.max(
+            20,
+            Math.min(
+                850,
+                playerY
+            )
+        );
+
+    player.style.left =
+        playerX + "px";
+
+    player.style.top =
+        playerY + "px";
+
+    updateCamera();
+
+    checkNPCDistance();
+
+    checkMine();
+}
+
+/* =========================
+   CAMERA
+========================= */
+
+function updateCamera(){
+
+    const width =
+        game.clientWidth;
+
+    const height =
+        game.clientHeight;
+
+    cameraX =
+        playerX -
+        width / 2;
+
+    cameraY =
+        playerY -
+        height / 2;
+
+    cameraX =
+        Math.max(
+            0,
+            Math.min(
+                1600 - width,
+                cameraX
+            )
+        );
+
+    cameraY =
+        Math.max(
+            0,
+            Math.min(
+                1000 - height,
+                cameraY
+            )
+        );
+
+    world.style.transform =
+        `translate(${-cameraX}px,${-cameraY}px)`;
+}
+
+/* =========================
+   NPC DISTANCE
+========================= */
+
+function distance(
+    x1,
+    y1,
+    x2,
+    y2
+){
+
+    return Math.sqrt(
+        Math.pow(x1-x2,2) +
+        Math.pow(y1-y2,2)
+    );
+}
+
+function checkNPCDistance(){
+
+    let nearest = null;
+
+    let nearestDistance =
+        Infinity;
+
+    for(const id in npcs){
+
+        const el =
+            npcs[id].el;
+
+        const x =
+            parseFloat(el.style.left);
+
+        const y =
+            parseFloat(el.style.top);
+
+        const d =
+            distance(
+                playerX,
+                playerY,
+                x,
+                y
+            );
+
+        if(d < nearestDistance){
+
+            nearestDistance = d;
+
+            nearest = id;
+        }
+    }
+
+    if(nearest &&
+       nearestDistance < 80){
+
+        currentNPC = null;
+
+        interact.style.display =
+            "flex";
+
+        interact.onclick = () => {
+
+            startDialogue(nearest);
+
+        };
+
+    }else{
+
+        interact.style.display =
+            "none";
+    }
+}
+
+/* =========================
+   MINE
+========================= */
+
+function checkMine(){
+
+    const mineX = 90;
+    const mineY = 80;
+
+    const d =
+        distance(
+            playerX,
+            playerY,
+            mineX + 115,
+            mineY + 95
+        );
+
+    if(
+        d < 130 &&
+        state.mineUnlocked
+    ){
+
+        objective.textContent =
+            "进入废弃矿洞……";
+
+        /*
+         * 第一版先不切换地图。
+         * 下一版加入真正的矿洞场景。
+         */
+    }
+}
+
+/* =========================
+   INITIAL POSITION
+========================= */
+
+player.style.left =
+    playerX + "px";
+
+player.style.top =
+    playerY + "px";
+
+/* =========================
+   GAME LOOP
+========================= */
+
+function loop(){
+
+    updatePlayer();
+
+    requestAnimationFrame(loop);
+}
+
+loop();
+
+/* =========================
+   INTRO
+========================= */
+
+setTimeout(() => {
+
+    speaker.textContent =
+        "SYSTEM";
+
+    text.textContent =
+        "你来到了一个陌生的小镇。";
+
+    dialogue.style.display =
+        "block";
+
+    dialogueLines = [
+        "你来到了一个陌生的小镇。",
+        "这里没有任务，也没有人告诉你该做什么。",
+        "镇上的人各自过着自己的生活。",
+        "去看看这里到底发生了什么。"
+    ];
+
+    dialogueIndex = 0;
+
+    showLine();
+
+},500);
+
+</script>
+
+</body>
+</html>
